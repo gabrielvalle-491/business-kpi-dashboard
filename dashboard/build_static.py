@@ -9,6 +9,8 @@ import argparse
 from datetime import date
 from pathlib import Path
 
+import plotly.graph_objects as go
+
 from dashboard import charts, kpis
 
 TEMPLATE = """<!doctype html>
@@ -38,6 +40,7 @@ TEMPLATE = """<!doctype html>
 
 
 def build(data_dir: Path, output: Path) -> Path:
+    """Render the self-contained HTML report from the CSVs in ``data_dir`` and write it to ``output``."""
     data = kpis.load(data_dir)
     k = kpis.headline(data.orders, data.tickets)
     cards = [
@@ -48,7 +51,7 @@ def build(data_dir: Path, output: Path) -> Path:
         ("On-time delivery", f"{k['on_time_delivery_pct']}%"), ("CSAT (4-5★)", f"{k['csat_pct']}%"),
     ]
 
-    def html(fig) -> str:
+    def html(fig: go.Figure) -> str:
         return fig.to_html(full_html=False, include_plotlyjs=False, config={"displayModeBar": False})
 
     period = f"{data.orders['order_date'].min():%b %Y} – {data.orders['order_date'].max():%b %Y}"
@@ -69,6 +72,7 @@ def build(data_dir: Path, output: Path) -> Path:
 
 
 def main() -> None:
+    """Command-line entry point: ``python -m dashboard.build_static [data_dir] [output]``."""
     parser = argparse.ArgumentParser()
     parser.add_argument("data_dir", type=Path, nargs="?", default=Path("data"))
     parser.add_argument("output", type=Path, nargs="?", default=Path("docs/index.html"))

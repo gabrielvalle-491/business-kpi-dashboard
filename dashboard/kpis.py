@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 
 import pandas as pd
@@ -16,6 +18,7 @@ class Data:
 
 
 def load(folder: str | Path) -> Data:
+    """Read orders.csv, customers.csv and tickets.csv from ``folder``, parsing the date columns."""
     folder = Path(folder)
     return Data(
         orders=pd.read_csv(folder / "orders.csv", parse_dates=["order_date"]),
@@ -24,7 +27,17 @@ def load(folder: str | Path) -> Data:
     )
 
 
-def filter_orders(orders: pd.DataFrame, start=None, end=None, regions=None, channels=None) -> pd.DataFrame:
+def filter_orders(
+    orders: pd.DataFrame,
+    start: str | date | pd.Timestamp | None = None,
+    end: str | date | pd.Timestamp | None = None,
+    regions: Iterable[str] | None = None,
+    channels: Iterable[str] | None = None,
+) -> pd.DataFrame:
+    """Return the orders inside the inclusive date range and the selected regions/channels.
+
+    Empty or ``None`` filters are ignored.
+    """
     mask = pd.Series(True, index=orders.index)
     if start is not None:
         mask &= orders["order_date"] >= pd.Timestamp(start)
@@ -42,7 +55,8 @@ def completed(orders: pd.DataFrame) -> pd.DataFrame:
     return orders[orders["status"] == "Delivered"]
 
 
-def headline(orders: pd.DataFrame, tickets: pd.DataFrame) -> dict:
+def headline(orders: pd.DataFrame, tickets: pd.DataFrame) -> dict[str, float | int]:
+    """Headline KPIs. Ratios fall back to 0.0 when there is nothing to divide by."""
     done = completed(orders)
     revenue = float(done["revenue"].sum())
     profit = revenue - float(done["cost"].sum())
@@ -62,6 +76,7 @@ def headline(orders: pd.DataFrame, tickets: pd.DataFrame) -> dict:
 
 
 def monthly(orders: pd.DataFrame) -> pd.DataFrame:
+    """Delivered revenue, orders and customers per month, with month-over-month growth %."""
     done = completed(orders)
     out = (done.groupby(done["order_date"].dt.to_period("M"))
            .agg(revenue=("revenue", "sum"), orders=("order_id", "nunique"), customers=("customer_id", "nunique"))
@@ -72,6 +87,7 @@ def monthly(orders: pd.DataFrame) -> pd.DataFrame:
 
 
 def by(orders: pd.DataFrame, column: str, top: int | None = None) -> pd.DataFrame:
+    """Delivered revenue and orders grouped by ``column``, sorted by revenue, with share %."""
     done = completed(orders)
     out = (done.groupby(column).agg(revenue=("revenue", "sum"), orders=("order_id", "nunique"))
            .sort_values("revenue", ascending=False).reset_index())
@@ -86,6 +102,7 @@ def repeat_customer_rate(orders: pd.DataFrame) -> float:
 
 
 def tickets_by_topic(tickets: pd.DataFrame) -> pd.DataFrame:
+    """Ticket count, average resolution hours and CSAT % per topic."""
     return (tickets.groupby("topic")
             .agg(tickets=("ticket_id", "count"), avg_hours=("resolution_hours", "mean"),
                  csat_pct=("csat", lambda s: (s >= 4).mean() * 100))

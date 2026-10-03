@@ -13,6 +13,7 @@ LAYOUT = dict(template="plotly_white", margin=dict(l=10, r=10, t=50, b=10), font
 
 
 def revenue_trend(orders: pd.DataFrame) -> go.Figure:
+    """Monthly revenue bars with an orders line on a secondary axis."""
     m = kpis.monthly(orders)
     fig = go.Figure()
     fig.add_bar(x=m["month"], y=m["revenue"], name="Revenue", marker_color=PALETTE[0])
@@ -25,6 +26,7 @@ def revenue_trend(orders: pd.DataFrame) -> go.Figure:
 
 
 def revenue_by(orders: pd.DataFrame, column: str, title: str) -> go.Figure:
+    """Horizontal bar chart of delivered revenue by ``column``, labelled with share %."""
     data = kpis.by(orders, column)
     fig = px.bar(data, x="revenue", y=column, orientation="h", text="share_pct", title=title,
                  color_discrete_sequence=[PALETTE[1]])
@@ -35,6 +37,7 @@ def revenue_by(orders: pd.DataFrame, column: str, title: str) -> go.Figure:
 
 
 def channel_mix(orders: pd.DataFrame) -> go.Figure:
+    """Donut chart of delivered revenue by sales channel."""
     data = kpis.by(orders, "channel")
     fig = px.pie(data, names="channel", values="revenue", hole=0.55, title="Revenue by sales channel",
                  color_discrete_sequence=PALETTE)
@@ -43,6 +46,7 @@ def channel_mix(orders: pd.DataFrame) -> go.Figure:
 
 
 def delivery_performance(orders: pd.DataFrame) -> go.Figure:
+    """Monthly on-time delivery % against the 90% target."""
     done = kpis.completed(orders).copy()
     done["month"] = done["order_date"].dt.to_period("M").dt.to_timestamp()
     on_time = (done.assign(on_time=done["delivery_days"] <= done["promised_days"])
@@ -55,6 +59,7 @@ def delivery_performance(orders: pd.DataFrame) -> go.Figure:
 
 
 def support_overview(tickets: pd.DataFrame) -> go.Figure:
+    """Tickets per topic, coloured by average resolution hours."""
     data = kpis.tickets_by_topic(tickets)
     fig = px.bar(data, x="topic", y="tickets", color="avg_hours", color_continuous_scale="Blues",
                  title="Support tickets by topic (color = avg. resolution hours)")

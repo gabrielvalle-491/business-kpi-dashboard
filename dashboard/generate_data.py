@@ -22,6 +22,7 @@ CHANNELS = ["Website", "Marketplace", "Sales rep"]
 
 
 def generate(out_dir: Path, seed: int = 11, start: str = "2025-10-01", months: int = 12) -> dict[str, Path]:
+    """Write synthetic orders.csv, customers.csv and tickets.csv to ``out_dir`` and return their paths."""
     rng = np.random.default_rng(seed)
     first = pd.Timestamp(start)
     last = first + pd.offsets.MonthBegin(months) - pd.offsets.Day(1)
@@ -81,6 +82,7 @@ def generate(out_dir: Path, seed: int = 11, start: str = "2025-10-01", months: i
 
 
 def main() -> None:
+    """Command-line entry point: ``python -m dashboard.generate_data [out_dir]``."""
     parser = argparse.ArgumentParser()
     parser.add_argument("out_dir", type=Path, nargs="?", default=Path("data"))
     args = parser.parse_args()
