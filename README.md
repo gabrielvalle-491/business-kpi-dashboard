@@ -48,6 +48,18 @@ python -m dashboard.build_static data docs/index.html   # shareable HTML report
 Replace the CSV files in `data/` with real exports (same columns) and the
 dashboard works on real data.
 
+The same tasks are also available from a single command-line entry point:
+
+```bash
+python -m dashboard --help
+python -m dashboard generate data                  # same as dashboard.generate_data
+python -m dashboard build data docs/index.html     # same as dashboard.build_static
+python -m dashboard summary data                   # print the headline KPIs
+```
+
+It exits with code `0` on success and `1` (with an `error:` message) when a CSV
+file or a required column is missing.
+
 ## Demo dataset (synthetic)
 
 `generate_data.py` simulates a realistic small business: ~5,500 orders over 12 months
