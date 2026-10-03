@@ -97,6 +97,26 @@ tests/
 pytest -q
 ```
 
+## How I would deliver this to a client
+
+If you hire me for this, I would:
+
+- **Ask for three exports** (CSV, or Excel sheets that I convert to CSV), with these columns:
+  - `orders.csv`: `order_id`, `order_date`, `customer_id`, `region`, `channel`, `category`, `product`,
+    `revenue`, `cost`, `status` (`Delivered` / `Returned` / `Cancelled`), `promised_days`, `delivery_days`
+  - `tickets.csv`: `ticket_id`, `opened_at`, `topic`, `resolution_hours`, `csat` (1-5)
+  - `customers.csv`: `customer_id`, `signup_date` (plus any extra fields you already have)
+- **Map your column names and status values once** to the ones above, so your team keeps exporting
+  exactly as it does today.
+- **Agree the business rules with you in writing** before the first report (what counts as revenue,
+  what "on time" means, the delivery target) and keep them covered by the unit tests in `tests/`.
+- **Refresh it weekly**: drop the new exports into `data/`, run `python -m dashboard build data docs/index.html`
+  and share the updated HTML report (or the Streamlit app link) — a short checklist so anyone on your team can do it.
+- **Report problems clearly instead of showing wrong numbers**: `python -m dashboard` stops with exit code `1`
+  and an `error:` message when a file or a required column is missing, and the CI workflow runs the
+  tests on every change.
+- **Hand over everything**: source code, a short guide in English or Spanish, and a walkthrough call.
+
 ## Notes
 
 - All data is synthetic. No real company data.
